@@ -75,7 +75,7 @@ export default function FollowUp() {
                   <td className="p-3 text-gray-700 font-medium">
                     {item.patientName}
                   </td>
-                  <td className="p-3 text-gray-600">{item.lastVisit}</td>
+                  <td classname="p-3 text-gray-600">{item.lastVisit}</td>
                   <td className="p-3 text-gray-600">
                     {item.recommendedAfter}
                   </td>

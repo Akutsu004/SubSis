@@ -17,38 +17,75 @@ export default function PatientDashboardSync() {
   ];
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8 space-y-4">
-      <h1 className="text-xl font-semibold text-gray-700 mb-4 flex items-center gap-2">
-        <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
-        Patient Dashboard Sync
-      </h1>
+    <div className="container mx-auto space-y-10">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-2xl shadow-md p-8 flex items-center gap-3">
+        <FaUser className="text-blue-600 text-3xl" />
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-800">
+            Patient Dashboard Sync
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Monitor patients’ recent dental records and follow-up needs.
+          </p>
+        </div>
+      </div>
 
-      <table className="w-full text-left rounded-xl overflow-hidden">
-        <thead className="bg-blue-50 text-gray-700">
-          <tr>
-            <th className="p-4 font-medium flex items-center gap-2">
-              <FaUser className="text-blue-600" /> Patient
-            </th>
-            <th className="p-4 font-medium">Last Treatment</th>
-            <th className="p-4 font-medium">Prescriptions</th>
-            <th className="p-4 font-medium">Follow-Up Date</th>
-          </tr>
-        </thead>
+      {/* Table Section */}
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8">
+        <h3 className="text-xl font-semibold text-gray-700 mb-5 flex items-center gap-2">
+          <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
+          Patient Records
+        </h3>
 
-        <tbody>
-          {patientRecords.map((p, i) => (
-            <tr
-              key={i}
-              className="border-b hover:bg-blue-50 transition-all duration-200"
-            >
-              <td className="p-4">{p.name}</td>
-              <td className="p-4">{p.lastTreatment}</td>
-              <td className="p-4">{p.prescriptions.join(", ")}</td>
-              <td className="p-4 text-blue-600 font-medium">{p.followUp}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-blue-50 text-blue-700 text-sm uppercase font-medium">
+              <tr>
+                <th className="p-3 border border-blue-100">Patient</th>
+                <th className="p-3 border border-blue-100">Last Treatment</th>
+                <th className="p-3 border border-blue-100">Prescriptions</th>
+                <th className="p-3 border border-blue-100">Follow-Up Date</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {patientRecords.map((p, i) => (
+                <tr
+                  key={i}
+                  className="border-b border-gray-100 hover:bg-blue-50 transition duration-200"
+                >
+                  <td className="p-3 font-medium text-gray-700">
+                    {p.name}
+                  </td>
+                  <td className="p-3 text-gray-600">{p.lastTreatment}</td>
+                  <td className="p-3">
+                    <div className="flex flex-wrap gap-2">
+                      {p.prescriptions.map((drug, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-lg font-medium"
+                        >
+                          {drug}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="p-3 font-semibold text-blue-600">
+                    {p.followUp}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {patientRecords.length === 0 && (
+            <p className="text-center text-gray-500 text-sm py-4 italic">
+              No patient records available.
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
