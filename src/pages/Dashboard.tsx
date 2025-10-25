@@ -6,6 +6,8 @@ import {
   FaSmile,
   FaChartLine,
 } from "react-icons/fa";
+import ReactApexChart from "react-apexcharts";
+import type { ApexOptions } from "apexcharts";
 
 export default function Dashboard() {
   const dentistName = localStorage.getItem("dentistName") || "Dr. Dentist";
@@ -17,8 +19,57 @@ export default function Dashboard() {
     year: "numeric",
   });
 
+  // ✅ Apex Chart Options
+  const chartOptions: ApexOptions = {
+    chart: {
+      type: "area",
+      toolbar: { show: false }
+    },
+    stroke: {
+      curve: "smooth",
+      width: 3
+    },
+    fill: {
+      type: "gradient",
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.4,
+        opacityTo: 0.1,
+        stops: [0, 100],
+      },
+    },
+    colors: ["#2563EB"],
+    markers: {
+      size: 5,
+      colors: ["#1E40AF"],
+      strokeWidth: 2,
+      strokeColors: "#fff",
+    },
+    xaxis: {
+      categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      labels: { style: { colors: "#6B7280" } },
+    },
+    yaxis: {
+      labels: { style: { colors: "#6B7280" } },
+    },
+    grid: {
+      borderColor: "#E5E7EB",
+      strokeDashArray: 4,
+    },
+    tooltip: { theme: "light" },
+  };
+
+  // ✅ Separate Series
+  const chartSeries = [
+    {
+      name: "Patients Seen",
+      data: [10, 14, 12, 18, 22, 15, 19]
+    }
+  ];
+
   return (
     <div className="container mx-auto space-y-10">
+
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-2xl shadow-md p-8 flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
@@ -43,7 +94,6 @@ export default function Dashboard() {
           Quick Stats
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Appointments */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
@@ -58,7 +108,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Follow-ups */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
@@ -73,7 +122,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Stock Alerts */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
@@ -88,7 +136,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Patients Seen */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
@@ -105,14 +152,20 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Weekly Performance Section */}
+      {/* Weekly Performance */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8">
         <h3 className="text-xl font-semibold text-gray-700 mb-4 flex items-center gap-2">
           <FaChartLine className="text-blue-600" /> Weekly Performance
         </h3>
-        <div className="w-full h-40 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl flex items-center justify-center border border-blue-100 text-blue-500 font-medium italic">
-          📈 Chart placeholder — add real data here later
-        </div>
+
+        {/* ✅ Correct Chart Implementation */}
+        <ReactApexChart
+          options={chartOptions}
+          series={chartSeries}
+          type="area"
+          height={250}
+        />
+
         <p className="text-gray-500 text-sm mt-3">
           Keep track of your weekly appointments and patient activities here.
         </p>
