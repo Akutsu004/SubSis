@@ -1,85 +1,352 @@
+"use client";
 import { useState } from "react";
-import { FaClock } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import { FaCalendarAlt } from "react-icons/fa";
 
-interface Slot {
-  time: string;
-  availableDentists: number;
+interface Appointment {
+  id: string;
+  title: string;
+  dentistId: number;
+  start: string;
+  end: string;
+  status: "booked" | "available";
+  recurring?: boolean;
 }
 
-export default function Availability() {
-  const [slots, setSlots] = useState<Slot[]>([
-    { time: "09:00 AM - 10:00 AM", availableDentists: 2 },
-    { time: "10:00 AM - 11:00 AM", availableDentists: 1 },
-    { time: "11:00 AM - 12:00 PM", availableDentists: 0 },
+interface Dentist {
+  id: number;
+  name: string;
+  color: string;
+}
+
+export default function AvailabilityCalendar() {
+  const [dentists] = useState<Dentist[]>([
+    { id: 1, name: "Dr. Smith", color: "#3B82F6" }, // blue
+    { id: 2, name: "Dr. Johnson", color: "#10B981" }, // green
+    { id: 3, name: "Dr. Lopez", color: "#8B5CF6" }, // violet
   ]);
 
-  const updateSlot = (index: number, newValue: number) => {
-    const updated = [...slots];
-    updated[index].availableDentists = newValue;
-    setSlots(updated);
+  const [selectedDentist, setSelectedDentist] = useState<number | "all">("all");
+  const [appointments, setAppointments] = useState<Appointment[]>([
+    {
+      id: "1",
+      dentistId: 1,
+      title: "Available - Dr. Smith",
+      start: "2025-10-27T09:00:00",
+      end: "2025-10-27T10:00:00",
+      status: "available",
+    },
+    {
+      id: "2",
+      dentistId: 2,
+      title: "Booked - Dr. Johnson",
+      start: "2025-10-27T10:00:00",
+      end: "2025-10-27T11:00:00",
+      status: "booked",
+    },
+  ]);
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editing, setEditing] = useState<Appointment | null>(null);
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [status, setStatus] = useState<"booked" | "available">("available");
+  const [recurring, setRecurring] = useState(false);
+
+  const filteredAppointments =
+    selectedDentist === "all"
+      ? appointments
+      : appointments.filter((a) => a.dentistId === selectedDentist);
+
+  const handleDateClick = (info: any) => {
+    if (selectedDentist === "all") {
+      alert("Please select a dentist first.");
+      return;
+    }
+    setEditing(null);
+    setStart(info.dateStr);
+    setEnd("");
+    setStatus("available");
+    setRecurring(false);
+    setIsDrawerOpen(true);
+  };
+
+  const handleEventClick = (info: any) => {
+    const event = appointments.find((a) => a.id === info.event.id);
+    if (event) {
+      setEditing(event);
+      setStart(event.start);
+      setEnd(event.end);
+      setStatus(event.status);
+      setRecurring(!!event.recurring);
+      setIsDrawerOpen(true);
+    }
+  };
+
+  const handleSave = () => {
+    if (!start || !end) {
+      alert("Please enter both start and end times.");
+      return;
+    }
+
+    if (editing) {
+      setAppointments((prev) =>
+        prev.map((a) =>
+          a.id === editing.id ? { ...a, start, end, status, recurring } : a
+        )
+      );
+    } else {
+      const dentist = dentists.find((d) => d.id === selectedDentist);
+      if (!dentist) return;
+      const newSlot: Appointment = {
+        id: String(Date.now()),
+        dentistId: dentist.id,
+        title: `${status === "available" ? "Available" : "Booked"} - ${
+          dentist.name
+        }`,
+        start,
+        end,
+        status,
+        recurring,
+      };
+      setAppointments((prev) => [...prev, newSlot]);
+    }
+    setIsDrawerOpen(false);
+  };
+
+  const handleDelete = () => {
+    if (!editing) return;
+    if (confirm("Delete this slot?")) {
+      setAppointments((prev) => prev.filter((a) => a.id !== editing.id));
+      setIsDrawerOpen(false);
+    }
+  };
+
+  const eventContent = (arg: any) => {
+    const dentist = dentists.find(
+      (d) => d.id === arg.event.extendedProps.dentistId
+    );
+    const color = dentist?.color ?? "#3B82F6";
+    const bg =
+      arg.event.extendedProps.status === "booked"
+        ? "#EF4444"
+        : color + "CC"; // add transparency
+
+    return (
+      <div
+        style={{
+          backgroundColor: bg,
+          color: "white",
+          padding: "4px 6px",
+          borderRadius: "6px",
+          fontSize: "12px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+        }}
+      >
+        {arg.event.title}
+      </div>
+    );
   };
 
   return (
     <div className="container mx-auto space-y-10">
-      {/* Header Section */}
-      <div className="bg-linear-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-2xl shadow-md p-8 flex items-center gap-3">
-        <FaClock className="text-blue-600 text-3xl" />
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-2xl shadow-md p-8 flex items-center gap-3">
+        <FaCalendarAlt className="text-blue-600 text-3xl" />
         <div>
           <h2 className="text-2xl font-semibold text-gray-800">
-            Availability Management
+            Dentist Availability
           </h2>
-          <p className="text-gray-600 text-sm mt-1">
-            Manage dentist availability per time slot.
+          <p className="text-sm text-gray-600 mt-1">
+            View, add, and manage dentist availability slots for appointments.
           </p>
         </div>
       </div>
 
-      {/* Table Section */}
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8">
+      {/* Calendar Section */}
+      <div className="bg-white border border-blue-100 rounded-2xl shadow-sm p-8 relative overflow-hidden">
         <h3 className="text-xl font-semibold text-gray-700 mb-5 flex items-center gap-2">
           <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
-          Time Slot Overview
+          Appointment-Based Availability
         </h3>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-blue-50 text-blue-700 text-sm uppercase font-medium">
-              <tr>
-                <th className="p-3 border border-blue-100">Time Slot</th>
-                <th className="p-3 border border-blue-100">Available Dentists</th>
-              </tr>
-            </thead>
-            <tbody>
-              {slots.map((slot, i) => (
-                <tr
-                  key={i}
-                  className="border-b border-gray-100 hover:bg-blue-50 transition"
-                >
-                  <td className="p-3 text-gray-700 font-medium">
-                    {slot.time}
-                  </td>
-                  <td className="p-3">
-                    <input
-                      type="number"
-                      min={0}
-                      value={slot.availableDentists}
-                      onChange={(e) =>
-                        updateSlot(i, parseInt(e.target.value) || 0)
-                      }
-                      className="border border-blue-300 rounded-lg px-3 py-1 w-24 text-center focus:ring focus:ring-blue-200 outline-none"
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Dentist Filter */}
+        <div className="mb-4 flex gap-3">
+          <select
+            className="border border-blue-300 rounded-lg px-4 py-2 focus:ring focus:ring-blue-200 outline-none"
+            value={selectedDentist}
+            onChange={(e) =>
+              setSelectedDentist(
+                e.target.value === "all" ? "all" : Number(e.target.value)
+              )
+            }
+          >
+            <option value="all">All Dentists</option>
+            {dentists.map((dentist) => (
+              <option key={dentist.id} value={dentist.id}>
+                {dentist.name}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div className="flex justify-end">
-          <button className="mt-6 bg-blue-600 text-white px-6 py-2.5 rounded-xl shadow-md hover:bg-blue-700 transition-all duration-200">
-            Save Availability
-          </button>
+        <div className="[&_.fc]:text-gray-700 [&_.fc]:border-blue-100 [&_.fc-scrollgrid]:border-blue-100 [&_.fc-col-header-cell]:bg-blue-50 [&_.fc-col-header-cell]:text-blue-700 [&_.fc-daygrid-day]:hover:bg-blue-50 transition-all">
+          <FullCalendar
+  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+  initialView="timeGridWeek"
+  events={filteredAppointments}
+  eventContent={eventContent}
+  eventClick={handleEventClick}
+  dateClick={handleDateClick}
+  height="auto"
+  slotMinTime="10:00:00"   // 🕙 Start at 10 AM
+  slotMaxTime="17:00:00"   // 🕔 End at 5 PM
+  allDaySlot={false}       // hides the all-day row
+/>
+
         </div>
+
+        {/* Drawer (Side Panel) */}
+        <AnimatePresence>
+          {isDrawerOpen && (
+            <motion.div
+              className="fixed top-0 right-0 h-full w-96 bg-white border-l border-blue-100 shadow-2xl p-6 flex flex-col z-50"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 120, damping: 20 }}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold text-gray-700 flex items-center gap-2">
+                  <FaCalendarAlt className="text-blue-500" />
+                  {editing ? "Edit Availability" : "Add Availability"}
+                </h3>
+                <button
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="text-gray-500 hover:text-gray-700 text-xl"
+                >
+                  ✕
+                </button>
+              </div>
+
+{/* Date Picker */}
+<label className="block mb-2 text-sm font-medium text-gray-600">
+  Date
+</label>
+<input
+  type="date"
+  className="border border-blue-300 rounded-lg p-2 w-full mb-4 focus:ring focus:ring-blue-200 outline-none"
+  value={start ? start.split("T")[0] : ""}
+  onChange={(e) => {
+    const date = e.target.value;
+    const startTime = start ? start.split("T")[1] : "";
+    const endTime = end ? end.split("T")[1] : "";
+    setStart(date && startTime ? `${date}T${startTime}` : "");
+    setEnd(date && endTime ? `${date}T${endTime}` : "");
+  }}
+/>
+
+{/* Start Time */}
+<label className="block mb-2 text-sm font-medium text-gray-600">
+  Start Time
+</label>
+<select
+  className="border border-blue-300 rounded-lg p-2 w-full mb-4 focus:ring focus:ring-blue-200 outline-none"
+  value={start ? start.split("T")[1]?.slice(0, 5) : ""}
+  onChange={(e) => {
+    const date = start ? start.split("T")[0] : new Date().toISOString().split("T")[0];
+    setStart(`${date}T${e.target.value}`);
+  }}
+>
+  <option value="">Select start time</option>
+  {[
+    "10:00", "10:30", "11:00", "11:30",
+    "12:00", "12:30", "13:00", "13:30",
+    "14:00", "14:30", "15:00", "15:30",
+    "16:00", "16:30"
+  ].map((time) => (
+    <option key={time} value={time}>{time}</option>
+  ))}
+</select>
+
+{/* End Time */}
+<label className="block mb-2 text-sm font-medium text-gray-600">
+  End Time
+</label>
+<select
+  className="border border-blue-300 rounded-lg p-2 w-full mb-6 focus:ring focus:ring-blue-200 outline-none"
+  value={end ? end.split("T")[1]?.slice(0, 5) : ""}
+  onChange={(e) => {
+    const date = start ? start.split("T")[0] : new Date().toISOString().split("T")[0];
+    setEnd(`${date}T${e.target.value}`);
+  }}
+>
+  <option value="">Select end time</option>
+  {[
+    "10:30", "11:00", "11:30",
+    "12:00", "12:30", "13:00", "13:30",
+    "14:00", "14:30", "15:00", "15:30",
+    "16:00", "16:30", "17:00"
+  ].map((time) => (
+    <option key={time} value={time}>{time}</option>
+  ))}
+</select>
+
+              <label className="block mb-2 text-sm font-medium text-gray-600">
+                Status
+              </label>
+              <select
+                value={status}
+                onChange={(e) =>
+                  setStatus(e.target.value as "available" | "booked")
+                }
+                className="border border-blue-300 rounded-lg p-2 w-full mb-6 focus:ring focus:ring-blue-200 outline-none"
+              >
+                <option value="available">Available</option>
+                <option value="booked">Booked</option>
+              </select>
+
+              <div className="flex items-center gap-2 mb-6">
+                <input
+                  type="checkbox"
+                  checked={recurring}
+                  onChange={(e) => setRecurring(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-blue-300 rounded"
+                />
+                <label className="text-sm text-gray-700">
+                  Repeat weekly
+                </label>
+              </div>
+
+              <div className="mt-auto flex justify-end gap-3">
+                {editing && (
+                  <button
+                    onClick={handleDelete}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all"
+                  >
+                    Delete
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-all"
+                >
+                  Save
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

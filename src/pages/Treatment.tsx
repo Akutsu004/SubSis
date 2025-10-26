@@ -103,41 +103,46 @@ export default function Treatment() {
           Recorded Treatments
         </h3>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-blue-50 text-blue-700 text-sm uppercase font-medium">
-              <tr>
-                <th className="p-3 border border-blue-100">Patient</th>
-                <th className="p-3 border border-blue-100">Diagnosis</th>
-                <th className="p-3 border border-blue-100">Services</th>
-                <th className="p-3 border border-blue-100">Medicines</th>
-              </tr>
-            </thead>
-            <tbody>
-              {records.map((r, i) => (
-                <tr
-                  key={i}
-                  className="border-b border-gray-100 hover:bg-blue-50 transition"
-                >
-                  <td className="p-3 font-medium text-gray-700">
-                    {r.patient}
-                  </td>
-                  <td className="p-3 text-gray-700">{r.diagnosis}</td>
-                  <td className="p-3 text-gray-600">{r.services.join(", ")}</td>
-                  <td className="p-3 text-gray-600">
-                    {r.medicines.join(", ")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+       <div className="overflow-x-auto">
+  <table className="w-full text-left border-collapse border border-blue-200 rounded-xl overflow-hidden">
+    <thead className="bg-blue-50 text-blue-700 text-sm uppercase font-medium">
+      <tr>
+        <th className="p-3 border border-blue-200">Patient</th>
+        <th className="p-3 border border-blue-200">Diagnosis</th>
+        <th className="p-3 border border-blue-200">Services</th>
+        <th className="p-3 border border-blue-200">Medicines</th>
+      </tr>
+    </thead>
+    <tbody>
+      {records.map((r, i) => (
+        <tr
+          key={i}
+          className="border border-blue-100 hover:bg-blue-50 transition-colors"
+        >
+          <td className="p-3 font-medium text-gray-700 border border-blue-100">
+            {r.patient}
+          </td>
+          <td className="p-3 text-gray-700 border border-blue-100">
+            {r.diagnosis}
+          </td>
+          <td className="p-3 text-gray-600 border border-blue-100">
+            {r.services.join(", ")}
+          </td>
+          <td className="p-3 text-gray-600 border border-blue-100">
+            {r.medicines.join(", ")}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
 
-          {records.length === 0 && (
-            <p className="text-center text-gray-500 text-sm py-4 italic">
-              No treatment records yet.
-            </p>
-          )}
-        </div>
+  {records.length === 0 && (
+    <p className="text-center text-gray-500 text-sm py-4 italic">
+      No treatment records yet.
+    </p>
+  )}
+</div>
+
       </div>
     </div>
   );
