@@ -4,10 +4,10 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Availability from "./pages/Availability";
 import Treatment from "./pages/Treatment";
-import FollowUp from "./pages/FollowUp";
+import FollowUp from "./pages/Followup";
 import Billing from "./pages/Billing";
 import Inventory from "./pages/Inventory";
-import PatientDashboardSync from "./pages/PatientDashboardSync";
+import PatientDashboardSync from "./pages/PatientDashboard";
 
 function App() {
   return (
