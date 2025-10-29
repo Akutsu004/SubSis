@@ -36,7 +36,7 @@ export default function MasterLayout() {
         <div>
           {/* Logo */}
           <div className="p-6 text-xl font-bold flex items-center justify-center text-blue-600 border-b border-gray-100 select-none">
-            🦷 <span className="ml-2">Dentist System</span>
+            🦷 <span className="ml-2">MEDICARE</span>
           </div>
 
           {/* Navigation */}

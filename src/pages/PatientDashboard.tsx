@@ -1,4 +1,5 @@
-import { FaUser } from "react-icons/fa";
+import { FaUser, FaClipboardList } from "react-icons/fa";
+import { MdOutlineMonitorHeart } from "react-icons/md";
 
 export default function PatientDashboardSync() {
   const patientRecords = [
@@ -20,7 +21,7 @@ export default function PatientDashboardSync() {
     <div className="container mx-auto space-y-10">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-2xl shadow-md p-8 flex items-center gap-3">
-        <FaUser className="text-blue-600 text-3xl" />
+        <MdOutlineMonitorHeart className="text-blue-600 text-3xl" />
         <div>
           <h2 className="text-2xl font-semibold text-gray-800">
             Patient Dashboard Sync
@@ -34,7 +35,7 @@ export default function PatientDashboardSync() {
       {/* Table Section */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8">
         <h3 className="text-xl font-semibold text-gray-700 mb-5 flex items-center gap-2">
-          <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
+          <FaClipboardList className="text-blue-500 text-lg" />
           Patient Records
         </h3>
 
@@ -55,9 +56,7 @@ export default function PatientDashboardSync() {
                   key={i}
                   className="border-b border-gray-100 hover:bg-blue-50 transition duration-200"
                 >
-                  <td className="p-3 font-medium text-gray-700">
-                    {p.name}
-                  </td>
+                  <td className="p-3 font-medium text-gray-700">{p.name}</td>
                   <td className="p-3 text-gray-600">{p.lastTreatment}</td>
                   <td className="p-3">
                     <div className="flex flex-wrap gap-2">

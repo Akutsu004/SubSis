@@ -1,10 +1,16 @@
 import { useState } from "react";
-import { FaBoxOpen } from "react-icons/fa";
+import { FaBoxOpen, FaClipboardList, FaUserCheck } from "react-icons/fa";
 
 interface Item {
   name: string;
   stock: number;
   threshold: number;
+}
+
+interface UsageLog {
+  patient: string;
+  item: string;
+  date: string;
 }
 
 export default function Inventory() {
@@ -14,10 +20,32 @@ export default function Inventory() {
     { name: "Gloves", stock: 50, threshold: 20 },
   ]);
 
+  const [patient, setPatient] = useState("");
+  const [logs, setLogs] = useState<UsageLog[]>([]);
+
   const handleUseItem = (index: number) => {
+    if (!patient) {
+      alert("Please enter the patient's name first.");
+      return;
+    }
+
     const updated = [...items];
+    if (updated[index].stock <= 0) {
+      alert("Stock is already empty for this item!");
+      return;
+    }
+
+    // Update stock
     updated[index].stock -= 1;
     setItems(updated);
+
+    // Record usage log
+    const log: UsageLog = {
+      patient,
+      item: updated[index].name,
+      date: new Date().toLocaleString(),
+    };
+    setLogs([log, ...logs]);
   };
 
   return (
@@ -27,19 +55,38 @@ export default function Inventory() {
         <FaBoxOpen className="text-blue-600 text-3xl" />
         <div>
           <h2 className="text-2xl font-semibold text-gray-800">
-            Inventory Management
+            Inventory & Stock Reporting
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Monitor, update, and track clinic supplies.
+            Track stock usage, update supplies, and record patient item logs.
           </p>
         </div>
       </div>
 
-      {/* Table Section */}
+      {/* Patient Logging Section */}
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <FaUserCheck className="text-blue-600" />
+          Patient Stock Logging
+        </h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Enter the patient’s name to record which items are given during
+          treatment.
+        </p>
+        <input
+          type="text"
+          placeholder="Enter Patient Name"
+          value={patient}
+          onChange={(e) => setPatient(e.target.value)}
+          className="border border-blue-300 rounded-lg px-4 py-2 w-full md:w-1/2 focus:ring focus:ring-blue-200 outline-none"
+        />
+      </div>
+
+      {/* Inventory Table */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8">
         <h3 className="text-xl font-semibold text-gray-700 mb-5 flex items-center gap-2">
-          <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
-          Available Supplies
+          <FaBoxOpen className="text-blue-600" />
+          Inventory Sync & Alerts
         </h3>
 
         <div className="overflow-x-auto">
@@ -76,7 +123,7 @@ export default function Inventory() {
                             : "bg-blue-600 text-white hover:bg-blue-700"
                         } disabled:bg-gray-400 disabled:cursor-not-allowed`}
                       >
-                        Use 1
+                        Give to Patient
                       </button>
                     </td>
                   </tr>
@@ -106,6 +153,34 @@ export default function Inventory() {
               </div>
             ))}
         </div>
+      </div>
+
+      {/* Patient Record Logs */}
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8">
+        <h3 className="text-xl font-semibold text-gray-700 mb-5 flex items-center gap-2">
+          <FaClipboardList className="text-blue-600" />
+          Patient Record Updates
+        </h3>
+        <p className="text-sm text-gray-500 mb-4">
+          View the log of items provided to patients — automatically reflected
+          in their medical records.
+        </p>
+
+        {logs.length > 0 ? (
+          <ul className="divide-y divide-gray-100">
+            {logs.map((log, i) => (
+              <li key={i} className="py-3 text-gray-700">
+                <strong>{log.patient}</strong> received{" "}
+                <span className="text-blue-700 font-medium">{log.item}</span> on{" "}
+                <span className="text-gray-500">{log.date}</span>.
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-center text-gray-500 text-sm italic">
+            No patient logs yet.
+          </p>
+        )}
       </div>
     </div>
   );

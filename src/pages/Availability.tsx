@@ -5,7 +5,13 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { FaCalendarAlt } from "react-icons/fa";
+import {
+  FaCalendarAlt,
+  FaUserMd,
+  FaTrash,
+  FaSave,
+  FaTimes,
+} from "react-icons/fa";
 
 interface Appointment {
   id: string;
@@ -25,9 +31,9 @@ interface Dentist {
 
 export default function AvailabilityCalendar() {
   const [dentists] = useState<Dentist[]>([
-    { id: 1, name: "Dr. Smith", color: "#3B82F6" }, // blue
-    { id: 2, name: "Dr. Johnson", color: "#10B981" }, // green
-    { id: 3, name: "Dr. Lopez", color: "#8B5CF6" }, // violet
+    { id: 1, name: "Dr. Smith", color: "#3B82F6" },
+    { id: 2, name: "Dr. Johnson", color: "#10B981" },
+    { id: 3, name: "Dr. Lopez", color: "#8B5CF6" },
   ]);
 
   const [selectedDentist, setSelectedDentist] = useState<number | "all">("all");
@@ -36,16 +42,16 @@ export default function AvailabilityCalendar() {
       id: "1",
       dentistId: 1,
       title: "Available - Dr. Smith",
-      start: "2025-10-27T09:00:00",
-      end: "2025-10-27T10:00:00",
+      start: "2025-10-27T10:00:00",
+      end: "2025-10-27T11:00:00",
       status: "available",
     },
     {
       id: "2",
       dentistId: 2,
       title: "Booked - Dr. Johnson",
-      start: "2025-10-27T10:00:00",
-      end: "2025-10-27T11:00:00",
+      start: "2025-10-27T11:00:00",
+      end: "2025-10-27T12:00:00",
       status: "booked",
     },
   ]);
@@ -134,7 +140,7 @@ export default function AvailabilityCalendar() {
     const bg =
       arg.event.extendedProps.status === "booked"
         ? "#EF4444"
-        : color + "CC"; // add transparency
+        : color + "CC";
 
     return (
       <div
@@ -170,12 +176,13 @@ export default function AvailabilityCalendar() {
       {/* Calendar Section */}
       <div className="bg-white border border-blue-100 rounded-2xl shadow-sm p-8 relative overflow-hidden">
         <h3 className="text-xl font-semibold text-gray-700 mb-5 flex items-center gap-2">
-          <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
+          <FaCalendarAlt className="text-blue-500" />
           Appointment-Based Availability
         </h3>
 
         {/* Dentist Filter */}
-        <div className="mb-4 flex gap-3">
+        <div className="mb-4 flex items-center gap-3">
+          <FaUserMd className="text-blue-600 text-lg" />
           <select
             className="border border-blue-300 rounded-lg px-4 py-2 focus:ring focus:ring-blue-200 outline-none"
             value={selectedDentist}
@@ -194,157 +201,197 @@ export default function AvailabilityCalendar() {
           </select>
         </div>
 
+        {/* FullCalendar */}
         <div className="[&_.fc]:text-gray-700 [&_.fc]:border-blue-100 [&_.fc-scrollgrid]:border-blue-100 [&_.fc-col-header-cell]:bg-blue-50 [&_.fc-col-header-cell]:text-blue-700 [&_.fc-daygrid-day]:hover:bg-blue-50 transition-all">
           <FullCalendar
-  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-  initialView="timeGridWeek"
-  events={filteredAppointments}
-  eventContent={eventContent}
-  eventClick={handleEventClick}
-  dateClick={handleDateClick}
-  height="auto"
-  slotMinTime="10:00:00"   // 🕙 Start at 10 AM
-  slotMaxTime="17:00:00"   // 🕔 End at 5 PM
-  allDaySlot={false}       // hides the all-day row
-/>
-
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="timeGridWeek"
+            events={filteredAppointments}
+            eventContent={eventContent}
+            eventClick={handleEventClick}
+            dateClick={handleDateClick}
+            height="auto"
+            slotMinTime="10:00:00"
+            slotMaxTime="17:00:00"
+            allDaySlot={false}
+          />
         </div>
 
-        {/* Drawer (Side Panel) */}
+        {/* Modal */}
         <AnimatePresence>
           {isDrawerOpen && (
-            <motion.div
-              className="fixed top-0 right-0 h-full w-96 bg-white border-l border-blue-100 shadow-2xl p-6 flex flex-col z-50"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 120, damping: 20 }}
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold text-gray-700 flex items-center gap-2">
-                  <FaCalendarAlt className="text-blue-500" />
-                  {editing ? "Edit Availability" : "Add Availability"}
-                </h3>
-                <button
-                  onClick={() => setIsDrawerOpen(false)}
-                  className="text-gray-500 hover:text-gray-700 text-xl"
-                >
-                  ✕
-                </button>
-              </div>
+            <>
+              <motion.div
+                className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsDrawerOpen(false)}
+              />
 
-{/* Date Picker */}
-<label className="block mb-2 text-sm font-medium text-gray-600">
-  Date
-</label>
-<input
-  type="date"
-  className="border border-blue-300 rounded-lg p-2 w-full mb-4 focus:ring focus:ring-blue-200 outline-none"
-  value={start ? start.split("T")[0] : ""}
-  onChange={(e) => {
-    const date = e.target.value;
-    const startTime = start ? start.split("T")[1] : "";
-    const endTime = end ? end.split("T")[1] : "";
-    setStart(date && startTime ? `${date}T${startTime}` : "");
-    setEnd(date && endTime ? `${date}T${endTime}` : "");
-  }}
-/>
-
-{/* Start Time */}
-<label className="block mb-2 text-sm font-medium text-gray-600">
-  Start Time
-</label>
-<select
-  className="border border-blue-300 rounded-lg p-2 w-full mb-4 focus:ring focus:ring-blue-200 outline-none"
-  value={start ? start.split("T")[1]?.slice(0, 5) : ""}
-  onChange={(e) => {
-    const date = start ? start.split("T")[0] : new Date().toISOString().split("T")[0];
-    setStart(`${date}T${e.target.value}`);
-  }}
->
-  <option value="">Select start time</option>
-  {[
-    "10:00", "10:30", "11:00", "11:30",
-    "12:00", "12:30", "13:00", "13:30",
-    "14:00", "14:30", "15:00", "15:30",
-    "16:00", "16:30"
-  ].map((time) => (
-    <option key={time} value={time}>{time}</option>
-  ))}
-</select>
-
-{/* End Time */}
-<label className="block mb-2 text-sm font-medium text-gray-600">
-  End Time
-</label>
-<select
-  className="border border-blue-300 rounded-lg p-2 w-full mb-6 focus:ring focus:ring-blue-200 outline-none"
-  value={end ? end.split("T")[1]?.slice(0, 5) : ""}
-  onChange={(e) => {
-    const date = start ? start.split("T")[0] : new Date().toISOString().split("T")[0];
-    setEnd(`${date}T${e.target.value}`);
-  }}
->
-  <option value="">Select end time</option>
-  {[
-    "10:30", "11:00", "11:30",
-    "12:00", "12:30", "13:00", "13:30",
-    "14:00", "14:30", "15:00", "15:30",
-    "16:00", "16:30", "17:00"
-  ].map((time) => (
-    <option key={time} value={time}>{time}</option>
-  ))}
-</select>
-
-              <label className="block mb-2 text-sm font-medium text-gray-600">
-                Status
-              </label>
-              <select
-                value={status}
-                onChange={(e) =>
-                  setStatus(e.target.value as "available" | "booked")
-                }
-                className="border border-blue-300 rounded-lg p-2 w-full mb-6 focus:ring focus:ring-blue-200 outline-none"
+              <motion.div
+                className="fixed top-1/2 left-1/2 w-full max-w-md -translate-x-1/2 -translate-y-1/2 bg-white border border-blue-100 shadow-2xl rounded-2xl p-6 z-50"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 150, damping: 18 }}
               >
-                <option value="available">Available</option>
-                <option value="booked">Booked</option>
-              </select>
-
-              <div className="flex items-center gap-2 mb-6">
-                <input
-                  type="checkbox"
-                  checked={recurring}
-                  onChange={(e) => setRecurring(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 border-blue-300 rounded"
-                />
-                <label className="text-sm text-gray-700">
-                  Repeat weekly
-                </label>
-              </div>
-
-              <div className="mt-auto flex justify-end gap-3">
-                {editing && (
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-gray-700 flex items-center gap-2">
+                    <FaCalendarAlt className="text-blue-500" />
+                    {editing ? "Edit Availability" : "Add Availability"}
+                  </h3>
                   <button
-                    onClick={handleDelete}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all"
+                    onClick={() => setIsDrawerOpen(false)}
+                    className="text-gray-500 hover:text-gray-700 text-xl"
                   >
-                    Delete
+                    ✕
                   </button>
-                )}
-                <button
-                  onClick={() => setIsDrawerOpen(false)}
-                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all"
+                </div>
+
+                {/* Date Picker */}
+                <label className="block mb-2 text-sm font-medium text-gray-600">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  className="border border-blue-300 rounded-lg p-2 w-full mb-4 focus:ring focus:ring-blue-200 outline-none"
+                  value={start ? start.split("T")[0] : ""}
+                  onChange={(e) => {
+                    const date = e.target.value;
+                    const startTime = start ? start.split("T")[1] : "";
+                    const endTime = end ? end.split("T")[1] : "";
+                    setStart(date && startTime ? `${date}T${startTime}` : "");
+                    setEnd(date && endTime ? `${date}T${endTime}` : "");
+                  }}
+                />
+
+                {/* Start Time */}
+                <label className="block mb-2 text-sm font-medium text-gray-600">
+                  Start Time
+                </label>
+                <select
+                  className="border border-blue-300 rounded-lg p-2 w-full mb-4 focus:ring focus:ring-blue-200 outline-none"
+                  value={start ? start.split("T")[1]?.slice(0, 5) : ""}
+                  onChange={(e) => {
+                    const date =
+                      start
+                        ? start.split("T")[0]
+                        : new Date().toISOString().split("T")[0];
+                    setStart(`${date}T${e.target.value}`);
+                  }}
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-all"
+                  <option value="">Select start time</option>
+                  {[
+                    "10:00",
+                    "10:30",
+                    "11:00",
+                    "11:30",
+                    "12:00",
+                    "12:30",
+                    "13:00",
+                    "13:30",
+                    "14:00",
+                    "14:30",
+                    "15:00",
+                    "15:30",
+                    "16:00",
+                    "16:30",
+                  ].map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ))}
+                </select>
+
+                {/* End Time */}
+                <label className="block mb-2 text-sm font-medium text-gray-600">
+                  End Time
+                </label>
+                <select
+                  className="border border-blue-300 rounded-lg p-2 w-full mb-6 focus:ring focus:ring-blue-200 outline-none"
+                  value={end ? end.split("T")[1]?.slice(0, 5) : ""}
+                  onChange={(e) => {
+                    const date =
+                      start
+                        ? start.split("T")[0]
+                        : new Date().toISOString().split("T")[0];
+                    setEnd(`${date}T${e.target.value}`);
+                  }}
                 >
-                  Save
-                </button>
-              </div>
-            </motion.div>
+                  <option value="">Select end time</option>
+                  {[
+                    "10:30",
+                    "11:00",
+                    "11:30",
+                    "12:00",
+                    "12:30",
+                    "13:00",
+                    "13:30",
+                    "14:00",
+                    "14:30",
+                    "15:00",
+                    "15:30",
+                    "16:00",
+                    "16:30",
+                    "17:00",
+                  ].map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Status */}
+                <label className="block mb-2 text-sm font-medium text-gray-600">
+                  Status
+                </label>
+                <select
+                  value={status}
+                  onChange={(e) =>
+                    setStatus(e.target.value as "available" | "booked")
+                  }
+                  className="border border-blue-300 rounded-lg p-2 w-full mb-6 focus:ring focus:ring-blue-200 outline-none"
+                >
+                  <option value="available">Available</option>
+                  <option value="booked">Booked</option>
+                </select>
+
+                <div className="flex items-center gap-2 mb-6">
+                  <input
+                    type="checkbox"
+                    checked={recurring}
+                    onChange={(e) => setRecurring(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 border-blue-300 rounded"
+                  />
+                  <label className="text-sm text-gray-700">Repeat weekly</label>
+                </div>
+
+                {/* Buttons */}
+                <div className="mt-auto flex justify-end gap-3">
+                  {editing && (
+                    <button
+                      onClick={handleDelete}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all flex items-center gap-2"
+                    >
+                      <FaTrash /> Delete
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setIsDrawerOpen(false)}
+                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all flex items-center gap-2"
+                  >
+                    <FaTimes /> Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-all flex items-center gap-2"
+                  >
+                    <FaSave /> Save
+                  </button>
+                </div>
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
       </div>

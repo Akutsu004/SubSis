@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { FaCalendarCheck } from "react-icons/fa";
+import {
+  FaCalendarCheck,
+  FaClipboardList,
+  FaUserCheck,
+  FaSyncAlt,
+} from "react-icons/fa";
 
 interface AvailabilitySlot {
   dentistId: number;
@@ -13,13 +18,14 @@ interface FollowUp {
   patientName: string;
   lastVisit: string;
   recommendedAfter: string;
+  preferredDate?: string;
   dentist?: string;
   followUpDate?: string;
   confirmed: boolean;
+  synced: boolean;
 }
 
 export default function FollowUp() {
-  // Shared dentist availability data (mocked for now)
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([
     {
       dentistId: 1,
@@ -48,8 +54,9 @@ export default function FollowUp() {
     {
       patientName: "John Doe",
       lastVisit: "2025-10-20",
-      recommendedAfter: "2 weeks",
+      recommendedAfter: "2 weeks (by Dr. Smith)",
       confirmed: false,
+      synced: false,
     },
   ]);
 
@@ -59,12 +66,10 @@ export default function FollowUp() {
 
   const dentists = Array.from(new Set(availability.map((a) => a.dentistName)));
 
-  // open booking drawer
   const handleBook = (index: number) => {
     setSelectedIndex(index);
   };
 
-  // save and sync both follow-up and availability
   const handleSaveBooking = () => {
     if (!selectedDentist || !selectedSlot) {
       alert("Please select dentist and slot.");
@@ -77,18 +82,17 @@ export default function FollowUp() {
       dentist: selectedDentist,
       followUpDate: selectedSlot,
       confirmed: true,
+      synced: true,
     };
     setFollowUps(updatedFollowUps);
 
-    // update availability (mark booked)
-   const updatedAvailability: AvailabilitySlot[] = availability.map((slot) =>
-  slot.start === selectedSlot && slot.dentistName === selectedDentist
-    ? { ...slot, status: "booked" as "booked" }
-    : slot
-);
-setAvailability(updatedAvailability);
+    const updatedAvailability = availability.map((slot) =>
+      slot.start === selectedSlot && slot.dentistName === selectedDentist
+        ? { ...slot, status: "booked" as "booked" }
+        : slot
+    );
 
-    // close drawer
+    setAvailability(updatedAvailability);
     setSelectedIndex(null);
     setSelectedDentist("");
     setSelectedSlot("");
@@ -101,19 +105,20 @@ setAvailability(updatedAvailability);
         <FaCalendarCheck className="text-blue-600 text-3xl" />
         <div>
           <h2 className="text-2xl font-semibold text-gray-800">
-            Follow-Up Scheduling
+            Follow-Up Consultation Management
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Receptionist books follow-ups using dentist availability slots.
+            Handles dentist recommendations, front desk confirmations, and
+            system synchronization automatically.
           </p>
         </div>
       </div>
 
-      {/* Follow-Up Table */}
+      {/* Follow-Up Records Section */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8">
         <h3 className="text-xl font-semibold text-gray-700 mb-5 flex items-center gap-2">
-          <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
-          Follow-Up Records
+          <FaClipboardList className="text-blue-600" />
+          Follow-Up Records Overview
         </h3>
 
         <table className="w-full text-left border-collapse">
@@ -121,10 +126,12 @@ setAvailability(updatedAvailability);
             <tr>
               <th className="p-3 border border-blue-200">Patient</th>
               <th className="p-3 border border-blue-200">Last Visit</th>
-              <th className="p-3 border border-blue-200">Recommended</th>
-              <th className="p-3 border border-blue-200">Dentist</th>
-              <th className="p-3 border border-blue-200">Follow-Up</th>
-              <th className="p-3 border border-blue-200">Status</th>
+              <th className="p-3 border border-blue-200">
+                Recommended (By Dentist)
+              </th>
+              <th className="p-3 border border-blue-200">Dentist (Assigned)</th>
+              <th className="p-3 border border-blue-200">Follow-Up Date</th>
+              <th className="p-3 border border-blue-200">System Status</th>
             </tr>
           </thead>
           <tbody>
@@ -133,7 +140,9 @@ setAvailability(updatedAvailability);
                 key={i}
                 className="border-b border-blue-100 hover:bg-blue-50 transition"
               >
-                <td className="p-3 font-medium text-gray-700">{f.patientName}</td>
+                <td className="p-3 font-medium text-gray-700">
+                  {f.patientName}
+                </td>
                 <td className="p-3 text-gray-600">{f.lastVisit}</td>
                 <td className="p-3 text-gray-600">{f.recommendedAfter}</td>
                 <td className="p-3 text-gray-700">{f.dentist || "—"}</td>
@@ -145,17 +154,21 @@ setAvailability(updatedAvailability);
                       })
                     : "—"}
                 </td>
-                <td className="p-3">
-                  {f.confirmed ? (
-                    <span className="px-3 py-1 rounded-lg text-green-700 bg-green-100 font-semibold">
-                      Confirmed
+                <td className="p-3 flex items-center gap-2">
+                  {f.synced ? (
+                    <span className="flex items-center gap-1 px-3 py-1 rounded-lg text-green-700 bg-green-100 font-semibold">
+                      <FaSyncAlt className="animate-spin-slow" /> Synced
+                    </span>
+                  ) : f.confirmed ? (
+                    <span className="flex items-center gap-1 px-3 py-1 rounded-lg text-blue-700 bg-blue-100 font-semibold">
+                      <FaUserCheck /> Confirmed
                     </span>
                   ) : (
                     <button
                       onClick={() => handleBook(i)}
                       className="bg-blue-600 text-white px-4 py-1.5 rounded-lg shadow hover:bg-blue-700 transition"
                     >
-                      Book
+                      Confirm (Front Desk)
                     </button>
                   )}
                 </td>
@@ -165,13 +178,20 @@ setAvailability(updatedAvailability);
         </table>
       </div>
 
-      {/* Booking Drawer */}
+      {/* Booking Modal */}
       {selectedIndex !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur-sm bg-white/10 flex items-center justify-center z-50">
           <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-lg border border-blue-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Book Follow-Up for {followUps[selectedIndex].patientName}
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <FaUserCheck className="text-blue-600" />
+              Confirm Follow-Up Appointment
             </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Dentist recommended:{" "}
+              <strong>{followUps[selectedIndex].recommendedAfter}</strong>
+              <br />
+              Patient (via email/phone) prefers a confirmed date.
+            </p>
 
             {/* Dentist dropdown */}
             <label className="block text-sm text-gray-600 mb-1">Dentist</label>
@@ -188,7 +208,7 @@ setAvailability(updatedAvailability);
               ))}
             </select>
 
-            {/* Available slots dropdown */}
+            {/* Available Slots */}
             {selectedDentist && (
               <>
                 <label className="block text-sm text-gray-600 mb-1">
@@ -229,7 +249,7 @@ setAvailability(updatedAvailability);
                 onClick={handleSaveBooking}
                 className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow"
               >
-                Save Booking
+                Save & Sync
               </button>
             </div>
           </div>
