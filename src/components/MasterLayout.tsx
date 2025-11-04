@@ -8,6 +8,9 @@ import {
   FaBoxOpen,
   FaUserFriends,
   FaSignOutAlt,
+  FaChartBar,
+  
+  
 } from "react-icons/fa";
 
 export default function MasterLayout() {
@@ -20,13 +23,18 @@ export default function MasterLayout() {
   };
 
   const navLinks = [
+    
     { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt /> },
     { name: "Availability", path: "/availability", icon: <FaCalendarAlt /> },
     { name: "Treatment", path: "/treatment", icon: <FaTooth /> },
+   
     { name: "Follow-Up", path: "/followup", icon: <FaNotesMedical /> },
     { name: "Billing", path: "/billing", icon: <FaFileInvoiceDollar /> },
     { name: "Inventory", path: "/inventory", icon: <FaBoxOpen /> },
     { name: "Patients", path: "/patient-dashboard", icon: <FaUserFriends /> },
+     { name: "Dental Chart", path: "/dental-chart", icon: <FaChartBar /> },
+ 
+
   ];
 
   return (
