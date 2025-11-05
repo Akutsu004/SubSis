@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   FaTooth,
   FaUser,
@@ -9,8 +9,12 @@ import {
   FaChevronUp,
   FaDownload,
   FaClipboardList,
+  FaUserFriends,
+  FaFileMedicalAlt,
+  FaTooth as FaToothIcon,
 } from "react-icons/fa";
 import jsPDF from "jspdf";
+import { usePatientContext } from "../contexts/PatientContext";
 
 type ToothCondition =
   | "healthy"
@@ -53,7 +57,12 @@ function defaultTeethUniversal(): Tooth[] {
   }));
 }
 
-export default function DentalChart() {
+interface DentalChartProps {
+  onNavigate?: (tab: "patient" | "treatment" | "workspace") => void;
+}
+
+export default function DentalChart({ onNavigate }: DentalChartProps) {
+  const { selectedPatient, activePatientForForms } = usePatientContext();
   const [patientName, setPatientName] = useState("");
   const [patientId, setPatientId] = useState("");
   const [patientDOB, setPatientDOB] = useState("");
@@ -66,6 +75,27 @@ export default function DentalChart() {
   const [showQuickSelect, setShowQuickSelect] = useState(false);
 
   const chartRef = useRef<HTMLDivElement>(null);
+
+  // Sync with selected patient
+  useEffect(() => {
+    if (selectedPatient) {
+      setPatientName(selectedPatient.name);
+      setPatientId(selectedPatient.patientId);
+      if (selectedPatient.birthdate) {
+        setPatientDOB(selectedPatient.birthdate);
+      }
+    }
+  }, [selectedPatient]);
+
+  useEffect(() => {
+    if (activePatientForForms) {
+      setPatientName(activePatientForForms.name || "");
+      setPatientId(activePatientForForms.patientId || "");
+      if (activePatientForForms.birthdate) {
+        setPatientDOB(activePatientForForms.birthdate);
+      }
+    }
+  }, [activePatientForForms]);
 
   const baseKey = useMemo(
     () => `${STORAGE_PREFIX}_${patientId || patientName || "default"}`,
@@ -91,6 +121,7 @@ export default function DentalChart() {
   }, [teeth, patientName, patientDOB, baseKey]);
 
   function openToothEditor(id: number) {
+    // Quick select mode: apply immediately without opening modal
     if (quickSelect) {
       const noteText =
         quickSelect === "filled"
@@ -260,24 +291,57 @@ export default function DentalChart() {
   const lowerRow = Array.from({ length: 16 }, (_, i) => i + 17);
 
   return (
-    <div className="container mx-auto space-y-10 p-6" ref={chartRef}>
-      {/* Header */}
-      <div className="bg-white border border-blue-200 rounded-2xl shadow-md p-8 flex items-center gap-3">
+    <div className="container mx-auto space-y-10 relative pb-16" ref={chartRef}>
+      {/* Header - matches Billing Summary style */}
+      <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-2xl shadow-md p-8 flex items-center gap-3 relative z-10">
         <FaTooth className="text-blue-600 text-3xl" />
-        <div>
-          <h2 className="text-3xl font-semibold text-gray-800">
-            Dental Chart
-          </h2>
+        <div className="flex-1">
+          <h2 className="text-2xl font-semibold text-gray-800">Dental Chart</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Click a tooth to update condition and notes for each patient.
+            Interactive tooth condition tracker for each patient.
           </p>
         </div>
+        {selectedPatient && (
+          <div className="bg-white px-4 py-2 rounded-lg border border-blue-200 flex items-center gap-2">
+            <FaUserFriends className="text-blue-600" />
+            <div>
+              <p className="text-xs text-gray-600">Selected:</p>
+              <p className="text-sm font-semibold text-blue-600">{selectedPatient.name}</p>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Quick Navigation */}
+      {onNavigate && (
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => onNavigate("patient")}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-sm"
+            >
+              <FaUserFriends /> View Patient Dashboard
+            </button>
+            <button
+              onClick={() => onNavigate("treatment")}
+              className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition text-sm"
+            >
+              <FaToothIcon /> Open Treatment
+            </button>
+            <button
+              onClick={() => onNavigate("workspace")}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition text-sm"
+            >
+              <FaFileMedicalAlt /> Open EMR
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* === Main Layout === */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Chart */}
-        <div className="lg:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-sm p-8">
+        {/* Main Chart (2/3) */}
+        <div className="lg:col-span-2 bg-white border border-blue-100 rounded-2xl shadow-sm p-8">
           <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center justify-between">
             <span className="flex items-center gap-2">
               <FaTooth className="text-blue-600" /> Tooth Layout
@@ -376,7 +440,7 @@ export default function DentalChart() {
           ))}
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar (1/3) */}
         <div className="bg-white border border-blue-100 rounded-2xl shadow-sm p-6 space-y-4">
           <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2 mb-2">
             <FaUser className="text-blue-600" /> Patient Information
@@ -441,7 +505,7 @@ export default function DentalChart() {
         </div>
       </div>
 
-      {/* === Summary & Recommendations === */}
+      {/* Summary & Recommendations (matching card style) */}
       <div className="bg-white border border-blue-100 rounded-2xl shadow-sm p-6 space-y-4">
         <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
           <FaClipboardList className="text-blue-600" /> Summary & Recommendations
@@ -494,7 +558,7 @@ export default function DentalChart() {
         )}
       </div>
 
-      {/* === Modal === */}
+      {/* Modal */}
       {activeTooth && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
@@ -533,9 +597,7 @@ export default function DentalChart() {
               {(draftCondition === "filled" || draftCondition === "implant") && (
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">
-                    {draftCondition === "filled"
-                      ? "Filler Material"
-                      : "Implant Type"}
+                    {draftCondition === "filled" ? "Filler Material" : "Implant Type"}
                   </label>
                   <select
                     value={material}

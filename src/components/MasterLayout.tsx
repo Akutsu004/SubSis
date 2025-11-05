@@ -9,6 +9,9 @@ import {
   FaUserFriends,
   FaSignOutAlt,
   FaChartBar,
+  FaFileMedicalAlt,
+  FaTasks,
+  FaLaptop,
   
   
 } from "react-icons/fa";
@@ -25,15 +28,12 @@ export default function MasterLayout() {
   const navLinks = [
     
     { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt /> },
+    { name: "Workspace", path: "/emr", icon: <FaLaptop /> },
     { name: "Availability", path: "/availability", icon: <FaCalendarAlt /> },
-    { name: "Treatment", path: "/treatment", icon: <FaTooth /> },
-   
     { name: "Follow-Up", path: "/followup", icon: <FaNotesMedical /> },
     { name: "Billing", path: "/billing", icon: <FaFileInvoiceDollar /> },
     { name: "Inventory", path: "/inventory", icon: <FaBoxOpen /> },
-    { name: "Patients", path: "/patient-dashboard", icon: <FaUserFriends /> },
-     { name: "Dental Chart", path: "/dental-chart", icon: <FaChartBar /> },
- 
+  
 
   ];
 
@@ -89,7 +89,7 @@ export default function MasterLayout() {
         {/* Header */}
         <header className="bg-white shadow-sm p-5 flex justify-between items-center border-b border-gray-200 sticky top-0 z-10">
           <h1 className="text-2xl font-semibold text-gray-700 capitalize tracking-wide">
-            {location.pathname.replace("/", "") || "Dashboard"}
+            Workspace
           </h1>
 
           <div className="flex items-center gap-4">

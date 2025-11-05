@@ -1,34 +1,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import  supabase  from "../basedata/supabaseClient";
 
 export default function Login() {
-  const [email, setEmail] = useState(""); 
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
 
-    // 🔐 Supabase email/password login
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      setError(error.message);
-    } else {
-      // ✅ Successful login
+    //  Basic mock login validation
+    if (username.trim() === "dentist" && password === "12345") {
       localStorage.setItem("dentistLoggedIn", "true");
-      localStorage.setItem("dentistEmail", email);
+      localStorage.setItem("dentistName", username);
       navigate("/dashboard");
+    } else {
+      setError("Invalid username or password.");
     }
   };
 
@@ -48,13 +36,13 @@ export default function Login() {
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Email
+              Username
             </label>
             <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              placeholder="Enter username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
               required
             />
@@ -66,7 +54,7 @@ export default function Login() {
             </label>
             <input
               type="password"
-              placeholder="Enter your password"
+              placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -76,14 +64,14 @@ export default function Login() {
 
           <button
             type="submit"
-            disabled={loading}
-            className={`mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg py-2 transition active:scale-95 ${
-              loading ? "opacity-70 cursor-not-allowed" : ""
-            }`}
+            className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg py-2 transition active:scale-95"
           >
-            {loading ? "Logging in..." : "Login"}
+            Login
           </button>
         </form>
+
+        
+      
       </div>
     </div>
   );
